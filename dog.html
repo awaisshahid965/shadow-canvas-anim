@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Shadow</title>
+	<style type="text/css">
+		
+		body {
+			min-height: 100vh;
+			display: grid;
+			place-items: center;
+		}
+
+		canvas {
+			display: block;
+			border: 1px solid rgba(0, 0, 0, .35);
+			border-radius: 4px;
+		}
+
+		select {
+			display: block;
+			padding: 10px 20px;
+		}
+
+	</style>
+</head>
+<body>
+	<select id="player-state-options">
+	</select>
+	<canvas id="canvas"></canvas>
+</body>
+</html>
+
+<script type="text/javascript">
+
+	// data structure to manage player sprite image
+	const playerSpriteDataSet = {
+		spriteWidth: 6876,
+		spriteHeight: 5230,
+		spriteRows: 12,
+		spriteColumns: 10,
+
+		playerStates: {
+			idle: {
+				row: 0,
+				totalStates: 7
+			},
+			jump: {
+				row: 1,
+				totalStates: 7
+			},
+			fall: {
+				row: 2,
+				totalStates: 7
+			},
+			run: {
+				row: 3,
+				totalStates: 9
+			},
+			dizzy: {
+				row: 4,
+				totalStates: 11
+			},
+			sit: {
+				row: 5,
+				totalStates: 5
+			},
+			roll: {
+				row: 6,
+				totalStates: 7
+			},
+			bite: {
+				row: 7,
+				totalStates: 7
+			},
+			ko: {
+				row: 8,
+				totalStates: 12
+			},
+			get_hit: {
+				row: 9,
+				totalStates: 4
+			}
+		}
+	};
+
+	// declarations
+	let canvas = document.getElementById("canvas");
+	let CANVAS_WIDTH = canvas.width = 600;
+	let CANVAS_HEIGHT = canvas.height = 550;
+	let playerImage;
+	let PLAYER_WIDTH, PLAYER_HEIGHT;
+	let currentState, currentAnimColumnLimit, currentSpriteCondition, currentRow, currentSpriteRowIncr;
+	let gameFrame, staggerFrame = 5;
+
+	// settings
+	let ctx = canvas.getContext('2d');
+
+	// declerations
+	playerImage = new Image();
+	playerImage.src = './dog.png';
+	PLAYER_WIDTH = Math.round(playerSpriteDataSet.spriteWidth / playerSpriteDataSet.spriteRows) + 2;
+	PLAYER_HEIGHT = Math.round(playerSpriteDataSet.spriteHeight/ playerSpriteDataSet.spriteColumns);
+
+	function animate() {
+		// clear old canvas on every new frame
+		ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+		// making frames slower
+		if (gameFrame % staggerFrame === 0) {
+			// manage rows according to state
+			currentSpriteCondition = (currentSpriteRowIncr % currentAnimColumnLimit) * PLAYER_WIDTH;
+			currentSpriteRowIncr++;
+		}
+
+		ctx.drawImage(playerImage, currentSpriteCondition, currentRow, PLAYER_WIDTH, PLAYER_HEIGHT, 0, -10, PLAYER_WIDTH, PLAYER_HEIGHT);
+
+		gameFrame++;
+		requestAnimationFrame(animate);
+	}
+
+	let changePlayerState = () => {
+		animateY =  playerSpriteDataSet.playerStates[currentState].row * PLAYER_HEIGHT
+	};
+
+
+	let resetSpriteAnimValues  = (currentState) => {
+		currentAnimColumnLimit = playerSpriteDataSet.playerStates[currentState].totalStates;
+		currentRow = playerSpriteDataSet.playerStates[currentState].row * PLAYER_HEIGHT;
+		currentSpriteRowIncr = 0;
+		gameFrame = 0;
+		staggerFrame = currentAnimColumnLimit < 7 ? 7 : 2;
+	};
+
+
+
+
+	let  initGame = () => {
+		// first making options from main data structure of game
+		let optionsStates = Object.keys(playerSpriteDataSet.playerStates);
+		let optionDropdown = document.getElementById('player-state-options');
+		optionsStates.forEach(state => {
+			optionDropdown.insertAdjacentHTML('beforeend', `<option value="${state}">${state}</option>`)
+		});
+
+		// attach an event listener to option dropdown, so when changed, values changed accordingly
+		optionDropdown.addEventListener('change', e => {
+			resetSpriteAnimValues(e.target.value);
+		});
+
+		// after making dropdown list, start animation
+		resetSpriteAnimValues(optionsStates[0]); // by defaults 1st in dropdown list
+		animate();
+	};
+
+	initGame();
+	
+</script>
+
+
+<!--
+
+	let rect = (x, y, w, h, drawColor) => {
+		ctx.fillStyle = drawColor;
+		ctx.fillRect(x, y, w, h);
+	};
+
+-->
+
+<!--
+	drawImage(imageObj, origin_x, origin_y);
+	drawImage(imageObj, origin_x, origin_y, width, height);
+	drawImage(imageObj, onImage_OriginX, onImage_OriginY, onImage_cropWidth, onImage_cropHeight, origin_x, origin_y, width, height);
+-->
